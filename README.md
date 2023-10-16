@@ -1,0 +1,2 @@
+# mines
+(dont) find mines!
