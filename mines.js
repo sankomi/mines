@@ -46,7 +46,10 @@ function addNumber(x, y) {
 	field[y][x].value += 1;
 }
 
+let keying = false;
 function onKey(key) {
+	if (keying) return;
+	keying = true;
 	let {x, y} = cursor;
 	switch (key.name) {
 		case "k":
@@ -66,7 +69,7 @@ function onKey(key) {
 			x++;
 			break;
 		case "z":
-			field[y][x].hidden = false;
+			flip(x, y);
 			break;
 	}
 
@@ -76,6 +79,25 @@ function onKey(key) {
 	cursor.x = x;
 	cursor.y = y;
 	draw();
+
+	keying = false;
+}
+
+function flip(x, y) {
+	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+	const one = field[y][x];
+	if (!one.hidden) return;
+	one.hidden = false;
+	if (one.value === 0) {
+		flip(x - 1, y - 1);
+		flip(x    , y - 1);
+		flip(x + 1, y - 1);
+		flip(x - 1, y    );
+		flip(x + 1, y    );
+		flip(x - 1, y + 1);
+		flip(x    , y + 1);
+		flip(x + 1, y + 1);
+	}
 }
 
 draw();
