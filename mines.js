@@ -47,7 +47,7 @@ function addNumber(x, y) {
 }
 
 let keying = false;
-function onKey(key) {
+async function onKey(key) {
 	if (keying) return;
 	keying = true;
 	let {x, y} = cursor;
@@ -69,7 +69,7 @@ function onKey(key) {
 			x++;
 			break;
 		case "z":
-			flip(x, y);
+			await flip(x, y);
 			break;
 	}
 
@@ -83,21 +83,31 @@ function onKey(key) {
 	keying = false;
 }
 
-function flip(x, y) {
+async function flip(x, y) {
 	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
 	const one = field[y][x];
 	if (!one.hidden) return;
 	one.hidden = false;
+
+	draw(x, y);
+	await sleep(20);
+
 	if (one.value === 0) {
-		flip(x - 1, y - 1);
-		flip(x    , y - 1);
-		flip(x + 1, y - 1);
-		flip(x - 1, y    );
-		flip(x + 1, y    );
-		flip(x - 1, y + 1);
-		flip(x    , y + 1);
-		flip(x + 1, y + 1);
+		await flip(x - 1, y - 1);
+		await flip(x    , y - 1);
+		await flip(x + 1, y - 1);
+		await flip(x - 1, y    );
+		await flip(x + 1, y    );
+		await flip(x - 1, y + 1);
+		await flip(x    , y + 1);
+		await flip(x + 1, y + 1);
 	}
+}
+
+async function sleep(time) {
+	return new Promise(resolve => {
+		setTimeout(resolve, time);
+	});
 }
 
 draw();
