@@ -17,6 +17,7 @@ const States = {PLAYING: 0, WIN: 1, DEAD: 2};
 let cursor = {x: 0, y: 0};
 let field = [];
 let state;
+let left;
 
 function init() {
 	for (let y = 0; y < HEIGHT; y++) {
@@ -41,6 +42,7 @@ function reset() {
 		}
 	}
 
+	left = Math.max(WIDTH * HEIGHT - MINES, 1);
 	let mines = 0;
 	while (mines < Math.min(MINES, WIDTH * HEIGHT - 1)) {
 		let x = Math.floor(Math.random() * WIDTH);
@@ -69,7 +71,7 @@ function reset() {
 
 let keying = false;
 async function onKey(key) {
-	if (state === States.DEAD) {
+	if (state === States.DEAD || state === States.WIN) {
 		if (key.name === "z") {
 			reset();
 		}
@@ -119,6 +121,12 @@ async function flip(x, y) {
 
 	if (one.value === "*") {
 		state = States.DEAD;
+		return;
+	}
+
+	left--;
+	if (left <= 0) {
+		state = States.WIN;
 		return;
 	}
 
