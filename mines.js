@@ -38,6 +38,7 @@ function reset() {
 	for (let y = 0; y < HEIGHT; y++) {
 		for (let x = 0; x < WIDTH; x++) {
 			field[y][x].hidden = true;
+			field[y][x].flag = false;
 			field[y][x].value = 0;
 		}
 	}
@@ -101,6 +102,8 @@ async function onKey(key) {
 		case "z":
 			await flip(x, y);
 			break;
+		case "x":
+			flag(x, y);
 	}
 
 	x = Math.max(Math.min(x, WIDTH - 1), 0);
@@ -113,10 +116,17 @@ async function onKey(key) {
 	draw();
 }
 
-async function flip(x, y) {
+function flag(x, y) {
 	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
 	const one = field[y][x];
 	if (!one.hidden) return;
+	one.flag = !one.flag;
+}
+
+async function flip(x, y) {
+	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+	const one = field[y][x];
+	if (one.flag || !one.hidden) return;
 	one.hidden = false;
 
 	if (one.value === "*") {
@@ -177,10 +187,14 @@ function draw() {
 	for (let y = 0; y < HEIGHT; y++) {
 		print("██");
 		for (let x = 0; x < WIDTH; x++) {
-			let {hidden, value} = field[y][x];
+			let {hidden, flag, value} = field[y][x];
 			if (x === cursor.x && y === cursor.y) {
 				if (hidden) {
-					print("\x1b[105m░░\x1b[0m");
+					if (flag) {
+						print("\x1b[101m P\x1b[0m");
+					} else {
+						print("\x1b[105m░░\x1b[0m");
+					}
 				} else if (value === 0) {
 					print(`\x1b[105m  \x1b[0m`);
 				} else {
@@ -188,7 +202,11 @@ function draw() {
 				}
 			} else {
 				if (hidden) {
-					print("░░");
+					if (flag) {
+						print("\x1b[91m P\x1b[0m");
+					} else {
+						print("░░");
+					}
 				} else if (value === 0) {
 					print("  ");
 				} else {
