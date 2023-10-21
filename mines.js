@@ -18,6 +18,7 @@ let cursor = {x: 0, y: 0};
 let field = [];
 let state;
 let left;
+let mined;
 
 function init() {
 	for (let y = 0; y < HEIGHT; y++) {
@@ -31,6 +32,7 @@ function init() {
 
 function reset() {
 	state = States.PLAYING;
+	mined = false;
 
 	cursor.x = 0;
 	cursor.y = 0;
@@ -43,12 +45,16 @@ function reset() {
 		}
 	}
 
+	draw();
+}
+
+function setMines(fx, fy) {
 	left = Math.max(WIDTH * HEIGHT - MINES, 1);
 	let mines = 0;
 	while (mines < Math.min(MINES, WIDTH * HEIGHT - 1)) {
 		let x = Math.floor(Math.random() * WIDTH);
 		let y = Math.floor(Math.random() * HEIGHT);
-		if (field[y][x].value === 0) {
+		if ((x !== fx || y !== fy) && field[y][x].value !== "*") {
 			field[y][x].value = "*";
 			addNumber(x - 1, y - 1);
 			addNumber(x - 1, y    );
@@ -61,13 +67,14 @@ function reset() {
 			mines++;
 		}
 	}
-	function addNumber(x, y) {
-		if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
-		if (field[y][x] === "*") return;
-		field[y][x].value += 1;
-	}
 
-	draw();
+	mined = true;
+}
+
+function addNumber(x, y) {
+	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+	if (field[y][x].value === "*") return;
+	field[y][x].value += 1;
 }
 
 let keying = false;
@@ -125,6 +132,9 @@ function flag(x, y) {
 
 async function flip(x, y) {
 	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+
+	if (!mined) setMines(x, y);
+
 	const one = field[y][x];
 	if (one.flag || !one.hidden) return;
 	one.hidden = false;
