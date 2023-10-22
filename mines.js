@@ -1,32 +1,50 @@
-require("readline").emitKeypressEvents(process.stdin);
-print("\x1b[2J\x1b[H");
-process.stdin.setRawMode(true);
-process.stdin.on("keypress", (chunk, key) => {
-	if (key.ctrl && key.name === "c") {
-		print("", true);
-		process.exit();
-	} else {
-		onKey(key);
-	}
-});
+const readline = require("readline");
 
-const WIDTH = 10;
-const HEIGHT = 10;
-const MINES = 10;
 const States = {PLAYING: 0, WIN: 1, DEAD: 2};
+let width = 10;
+let height = 10;
+let mines = 10;
 let cursor = {x: 0, y: 0};
 let field = [];
 let state;
 let left;
 let mined;
 
-function init() {
-	for (let y = 0; y < HEIGHT; y++) {
+async function init() {
+	print("\x1b[2J\x1b[H");
+
+	const read = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+	});
+
+	width = +await new Promise(resolve => read.question("width? ", answer => resolve(answer)));
+	height = +await new Promise(resolve => read.question("height? ", answer => resolve(answer)));
+	mines = +await new Promise(resolve => read.question("mines? ", answer => resolve(answer)));
+	read.close();
+
+	for (let y = 0; y < height; y++) {
 		field[y] = [];
-		for (let x = 0; x < WIDTH; x++) {
+		for (let x = 0; x < width; x++) {
 			field[y][x] = {};
 		}
 	}
+
+	readline.createInterface({
+		input: process.stdin,
+	});
+
+	readline.emitKeypressEvents(process.stdin);
+	process.stdin.setRawMode(true);
+	process.stdin.on("keypress", (chunk, key) => {
+		if (key.ctrl && key.name === "c") {
+			print("", true);
+			process.exit();
+		} else {
+			onKey(key);
+		}
+	});
+
 	reset();
 }
 
@@ -37,8 +55,8 @@ function reset() {
 	cursor.x = 0;
 	cursor.y = 0;
 
-	for (let y = 0; y < HEIGHT; y++) {
-		for (let x = 0; x < WIDTH; x++) {
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
 			field[y][x].hidden = true;
 			field[y][x].flag = false;
 			field[y][x].value = 0;
@@ -49,11 +67,11 @@ function reset() {
 }
 
 function setMines(fx, fy) {
-	left = Math.max(WIDTH * HEIGHT - MINES, 1);
-	let mines = 0;
-	while (mines < Math.min(MINES, WIDTH * HEIGHT - 1)) {
-		let x = Math.floor(Math.random() * WIDTH);
-		let y = Math.floor(Math.random() * HEIGHT);
+	left = Math.max(width * height - mines, 1);
+	let mine = 0;
+	while (mine < Math.min(mines, width * height - 1)) {
+		let x = Math.floor(Math.random() * width);
+		let y = Math.floor(Math.random() * height);
 		if ((x !== fx || y !== fy) && field[y][x].value !== "*") {
 			field[y][x].value = "*";
 			addNumber(x - 1, y - 1);
@@ -64,7 +82,7 @@ function setMines(fx, fy) {
 			addNumber(x + 1, y - 1);
 			addNumber(x + 1, y    );
 			addNumber(x + 1, y + 1);
-			mines++;
+			mine++;
 		}
 	}
 
@@ -72,7 +90,7 @@ function setMines(fx, fy) {
 }
 
 function addNumber(x, y) {
-	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+	if (x < 0 || x >= width || y < 0 || y >= height) return;
 	if (field[y][x].value === "*") return;
 	field[y][x].value += 1;
 }
@@ -113,8 +131,8 @@ async function onKey(key) {
 			flag(x, y);
 	}
 
-	x = Math.max(Math.min(x, WIDTH - 1), 0);
-	y = Math.max(Math.min(y, HEIGHT - 1), 0);
+	x = Math.max(Math.min(x, width - 1), 0);
+	y = Math.max(Math.min(y, height - 1), 0);
 
 	cursor.x = x;
 	cursor.y = y;
@@ -124,14 +142,14 @@ async function onKey(key) {
 }
 
 function flag(x, y) {
-	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+	if (x < 0 || x >= width || y < 0 || y >= height) return;
 	const one = field[y][x];
 	if (!one.hidden) return;
 	one.flag = !one.flag;
 }
 
 async function flip(x, y) {
-	if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
+	if (x < 0 || x >= width || y < 0 || y >= height) return;
 
 	if (!mined) setMines(x, y);
 
@@ -172,8 +190,8 @@ async function sleep(time) {
 }
 
 function draw() {
-	print(`\r\x1b[${HEIGHT + 3}A`);
-	for (let i = 0; i < WIDTH * 0.5; i++) {
+	print(`\r\x1b[${height + 3}A`);
+	for (let i = 0; i < width * 0.5; i++) {
 		print("  ");
 	}
 	print(" ");
@@ -190,13 +208,13 @@ function draw() {
 			break;
 	}
 	print("", true);
-	for (let i = 0; i < WIDTH + 2; i++) {
+	for (let i = 0; i < width + 2; i++) {
 		print("██");
 	}
 	print("", true);
-	for (let y = 0; y < HEIGHT; y++) {
+	for (let y = 0; y < height; y++) {
 		print("██");
-		for (let x = 0; x < WIDTH; x++) {
+		for (let x = 0; x < width; x++) {
 			let {hidden, flag, value} = field[y][x];
 			if (x === cursor.x && y === cursor.y) {
 				if (hidden) {
@@ -226,7 +244,7 @@ function draw() {
 		}
 		print("██", true);
 	}
-	for (let i = 0; i < WIDTH + 2; i++) {
+	for (let i = 0; i < width + 2; i++) {
 		print("██");
 	}
 }
