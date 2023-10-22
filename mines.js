@@ -57,6 +57,7 @@ function reset() {
 
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
+			field[y][x].flip = false;
 			field[y][x].hidden = true;
 			field[y][x].flag = false;
 			field[y][x].value = 0;
@@ -125,7 +126,17 @@ async function onKey(key) {
 			x++;
 			break;
 		case "z":
-			await flip(x, y);
+			flip(x, y);
+			for (let i = 0; i < height; i++) {
+				for (let j = 0; j < width; j++) {
+					let one = field[i][j];
+					if (one.flip && one.hidden) {
+						one.hidden = false;
+						draw();
+						await sleep(20);
+					}
+				}
+			}
 			break;
 		case "x":
 			flag(x, y);
@@ -148,16 +159,18 @@ function flag(x, y) {
 	one.flag = !one.flag;
 }
 
-async function flip(x, y) {
+function flip(x, y) {
 	if (x < 0 || x >= width || y < 0 || y >= height) return;
 
 	if (!mined) setMines(x, y);
 
 	const one = field[y][x];
 	if (one.flag || !one.hidden) return;
-	one.hidden = false;
+	if (one.flip) return;
+	one.flip = true;
 
 	if (one.value === "*") {
+		one.hidden = false;
 		state = States.DEAD;
 		return;
 	}
@@ -168,18 +181,15 @@ async function flip(x, y) {
 		return;
 	}
 
-	draw(x, y);
-	await sleep(20);
-
 	if (one.value === 0) {
-		await flip(x - 1, y - 1);
-		await flip(x    , y - 1);
-		await flip(x + 1, y - 1);
-		await flip(x - 1, y    );
-		await flip(x + 1, y    );
-		await flip(x - 1, y + 1);
-		await flip(x    , y + 1);
-		await flip(x + 1, y + 1);
+		flip(x - 1, y - 1);
+		flip(x    , y - 1);
+		flip(x + 1, y - 1);
+		flip(x - 1, y    );
+		flip(x + 1, y    );
+		flip(x - 1, y + 1);
+		flip(x    , y + 1);
+		flip(x + 1, y + 1);
 	}
 }
 
