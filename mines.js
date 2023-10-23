@@ -21,6 +21,11 @@ async function init() {
 	width = +await new Promise(resolve => read.question("width? ", answer => resolve(answer)));
 	height = +await new Promise(resolve => read.question("height? ", answer => resolve(answer)));
 	mines = +await new Promise(resolve => read.question("mines? ", answer => resolve(answer)));
+
+	width = Math.min(Math.max(width, 10), 30);
+	height = Math.min(Math.max(height, 10), 30);
+	mines = Math.min(Math.max(mines, 1), width * height - 1);
+
 	read.close();
 
 	for (let y = 0; y < height; y++) {
