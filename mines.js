@@ -205,31 +205,50 @@ async function sleep(time) {
 }
 
 function draw() {
+	let columns = process.stdout.columns - 2 || 24;
+	let rows = process.stdout.rows - 2 || 26;
+
 	print(`\r\x1b[${height + 3}A`);
-	for (let i = 0; i < width * 0.5; i++) {
-		print("  ");
-	}
-	print(" ");
-	switch (state) {
-		case States.DEAD:
-			print("X(");
-			break;
-		case States.PLAYING:
-			if (keying) print(":O");
-			else print (":)");
-			break;
-		case States.WIN:
-			print("X)");
-			break;
+	let half = Math.min(width, columns * 0.5);
+	for (let i = 0; i < width * 2; i++) {
+		if (i >= columns) continue;
+		if (i === half - 1 || i === half - 0.5) {
+			print(" ");
+			switch (state) {
+				case States.DEAD:
+					print("X(");
+					break;
+				case States.PLAYING:
+					if (keying) print(":O");
+					else print (":)");
+					break;
+				case States.WIN:
+					print("B)");
+					break;
+			}
+		} else {
+			print(" ");
+		}
 	}
 	print("", true);
 	for (let i = 0; i < width + 2; i++) {
+		if (i * 2 > columns) continue;
 		print("██");
 	}
 	print("", true);
 	for (let y = 0; y < height; y++) {
-		print("██");
-		for (let x = 0; x < width; x++) {
+		if (y >= rows) continue;
+		for (let x = -1; x <= width; x++) {
+			if (x * 2 + 2 > columns) continue;
+
+			if (x === -1) {
+				print("██");
+				continue;
+			} else if (x === width) {
+				print("██");
+				continue;
+			}
+
 			let {hidden, flag, value} = field[y][x];
 			if (x === cursor.x && y === cursor.y) {
 				if (hidden) {
@@ -257,10 +276,14 @@ function draw() {
 				}
 			}
 		}
-		print("██", true);
+		if (y >= rows - 1) continue;
+		print("", true);
 	}
-	for (let i = 0; i < width + 2; i++) {
-		print("██");
+	if (height <= rows - 1) {
+		for (let i = 0; i < width + 2; i++) {
+			if (i * 2 > columns) continue;
+			print("██");
+		}
 	}
 }
 
