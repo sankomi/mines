@@ -236,10 +236,14 @@ function draw() {
 		print("██");
 	}
 	print("", true);
+
+	let offX = cursor.x - Math.ceil(width * 0.5 + 1 - columns * 0.25);
+	offX = cursor.x - Math.floor(columns * 0.25) + 1;
+	offX = Math.max(Math.min(offX, Math.ceil(width - columns * 0.5) + 1), 0);
 	for (let y = 0; y < height; y++) {
 		if (y >= rows) continue;
-		for (let x = -1; x <= width; x++) {
-			if (x * 2 + 2 > columns) continue;
+		for (let x = -1 + offX; x <= width; x++) {
+			if ((x - offX) * 2 + 2 > columns) continue;
 
 			if (x === -1) {
 				print("██");
