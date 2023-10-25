@@ -138,7 +138,7 @@ async function onKey(key) {
 					if (one.flip && one.hidden) {
 						one.hidden = false;
 						draw();
-						await sleep(20);
+						await sleep(0);
 					}
 				}
 			}
@@ -208,7 +208,7 @@ function draw() {
 	let columns = process.stdout.columns - 2 || 24;
 	let rows = process.stdout.rows - 2 || 26;
 
-	print(`\r\x1b[${height + 3}A`);
+	print(`\r\x1b[${height + 2}A`);
 	let half = Math.min(width, columns * 0.5);
 	for (let i = 0; i < width * 2; i++) {
 		if (i >= columns) continue;
@@ -231,17 +231,22 @@ function draw() {
 		}
 	}
 	print("", true);
-	for (let i = 0; i < width + 2; i++) {
-		if (i * 2 > columns) continue;
-		print("██");
-	}
-	print("", true);
 
-	let offX = cursor.x - Math.ceil(width * 0.5 + 1 - columns * 0.25);
-	offX = cursor.x - Math.floor(columns * 0.25) + 1;
+	let offX = cursor.x - Math.floor(columns * 0.25) + 1;
 	offX = Math.max(Math.min(offX, Math.ceil(width - columns * 0.5) + 1), 0);
-	for (let y = 0; y < height; y++) {
-		if (y >= rows) continue;
+	let offY = cursor.y - Math.floor(rows * 0.5) + 1;
+	offY = Math.max(Math.min(offY, height - rows + 1), 0);
+
+	if (offY === 0) {
+		for (let i = 0; i < width + 2; i++) {
+			if (i * 2 > columns) continue;
+			print("██");
+		}
+		print("", true);
+	}
+
+	for (let y = 0 + (offY > 0? offY - 1: 0); y < height; y++) {
+		if (y - offY >= rows) continue;
 		for (let x = -1 + offX; x <= width; x++) {
 			if ((x - offX) * 2 + 2 > columns) continue;
 
@@ -280,10 +285,10 @@ function draw() {
 				}
 			}
 		}
-		if (y >= rows - 1) continue;
+		if (y - offY >= rows - 1) continue;
 		print("", true);
 	}
-	if (height <= rows - 1) {
+	if (height - offY <= rows - 1) {
 		for (let i = 0; i < width + 2; i++) {
 			if (i * 2 > columns) continue;
 			print("██");
