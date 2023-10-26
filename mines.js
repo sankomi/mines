@@ -134,11 +134,14 @@ async function onKey(key) {
 			flip(x, y);
 			for (let i = 0; i < height; i++) {
 				for (let j = 0; j < width; j++) {
+
 					let one = field[i][j];
 					if (one.flip && one.hidden) {
 						one.hidden = false;
-						draw();
-						await sleep(0);
+						if (checkVisible(j, i)) {
+							draw();
+							await sleep(0);
+						}
 					}
 				}
 			}
@@ -204,9 +207,23 @@ async function sleep(time) {
 	});
 }
 
+function checkVisible(x, y) {
+	let columns = process.stdout.columns - 2 || 24;
+	let rows = process.stdout.rows - 2 || 13;
+
+	let offX = cursor.x - Math.floor(columns * 0.25) + 1;
+	offX = Math.max(Math.min(offX, Math.ceil(width - columns * 0.5) + 1), 0);
+	let offY = cursor.y - Math.floor(rows * 0.5) + 1;
+	offY = Math.max(Math.min(offY, height - rows + 1), 0);
+
+	if (y < offY || y - offY >= rows) return false;
+	if (x < offX || (x - offX) * 2 + 2 > columns) return false;
+	return true;
+}
+
 function draw() {
 	let columns = process.stdout.columns - 2 || 24;
-	let rows = process.stdout.rows - 2 || 26;
+	let rows = process.stdout.rows - 2 || 13;
 
 	print(`\r\x1b[${height + 2}A`);
 	let half = Math.min(width, columns * 0.5);
