@@ -1,6 +1,17 @@
 const readline = require("readline");
 
 const States = {PLAYING: 0, WIN: 1, DEAD: 2};
+const COLOURS = {
+	"1": "\x1b[34m",
+	"2": "\x1b[32m",
+	"3": "\x1b[31m",
+	"4": "\x1b[36m",
+	"5": "\x1b[33m",
+	"6": "\x1b[35m",
+	"7": "\x1b[39m",
+	"8": "\x1b[39m",
+};
+
 let width = 10;
 let height = 10;
 let mines = 10;
@@ -298,7 +309,9 @@ function draw() {
 				} else if (value === 0) {
 					print("  ");
 				} else {
+					print(COLOURS[+value]);
 					print(value.toString().padStart(2, " "));
+					print("\x1b[0m");
 				}
 			}
 		}
