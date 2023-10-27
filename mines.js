@@ -142,7 +142,7 @@ async function onKey(key) {
 			x++;
 			break;
 		case "z":
-			flip(x, y);
+			flip(x, y, true);
 			for (let i = 0; i < height; i++) {
 				for (let j = 0; j < width; j++) {
 
@@ -178,13 +178,49 @@ function flag(x, y) {
 	one.flag = !one.flag;
 }
 
-function flip(x, y) {
+function countFlags(x, y) {
+	if (x < 0 || x >= width || y < 0 || y >= height) return 0;
+	let flags = 0;
+	flags += checkFlag(x    , y - 1);
+	flags += checkFlag(x + 1, y - 1);
+	flags += checkFlag(x + 1, y    );
+	flags += checkFlag(x + 1, y + 1);
+	flags += checkFlag(x    , y + 1);
+	flags += checkFlag(x - 1, y + 1);
+	flags += checkFlag(x - 1, y    );
+	flags += checkFlag(x - 1, y - 1);
+	return flags;
+}
+
+function checkFlag(x, y) {
+	if (x < 0 || x >= width || y < 0 || y >= height) return 0;
+	return field[y][x].flag? 1: 0;
+}
+
+function flip(x, y, initial = false) {
 	if (x < 0 || x >= width || y < 0 || y >= height) return;
 
 	if (!mined) setMines(x, y);
 
 	const one = field[y][x];
-	if (one.flag || !one.hidden) return;
+	if (one.flag) return;
+	if (!one.hidden) {
+		let value = +one.value;
+		if (initial && value > 0) {
+			let flags = countFlags(x, y);
+			if (flags === value) {
+				flip(x - 1, y - 1);
+				flip(x    , y - 1);
+				flip(x + 1, y - 1);
+				flip(x - 1, y    );
+				flip(x + 1, y    );
+				flip(x - 1, y + 1);
+				flip(x    , y + 1);
+				flip(x + 1, y + 1);
+			}
+		}
+		return;
+	}
 	if (one.flip) return;
 	one.flip = true;
 
@@ -308,6 +344,8 @@ function draw() {
 					}
 				} else if (value === 0) {
 					print("  ");
+				} else if (value === "*") {
+					print(" *")
 				} else {
 					print(COLOURS[+value]);
 					print(value.toString().padStart(2, " "));
