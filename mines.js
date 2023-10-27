@@ -20,6 +20,7 @@ let field = [];
 let state;
 let left;
 let mined;
+let flagged;
 
 async function init() {
 	print("\x1b[2J\x1b[H");
@@ -67,6 +68,7 @@ async function init() {
 function reset() {
 	state = States.PLAYING;
 	mined = false;
+	flagged = 0;
 
 	cursor.x = 0;
 	cursor.y = 0;
@@ -176,6 +178,8 @@ function flag(x, y) {
 	const one = field[y][x];
 	if (!one.hidden) return;
 	one.flag = !one.flag;
+	if (one.flag) flagged++;
+	else flagged--;
 }
 
 function countFlags(x, y) {
@@ -274,22 +278,27 @@ function draw() {
 
 	print(`\r\x1b[${height + 2}A`);
 	let half = Math.min(width, columns * 0.5);
+	let end = Math.min(width * 2 - 3, columns - 3);
 	for (let i = 0; i < width * 2; i++) {
 		if (i >= columns) continue;
 		if (i === half - 1 || i === half - 0.5) {
 			print(" ");
 			switch (state) {
 				case States.DEAD:
-					print("X(");
+					print("\x1b[43;30mX(\x1b[0m");
 					break;
 				case States.PLAYING:
-					if (keying) print(":O");
-					else print (":)");
+					if (keying) print("\x1b[43;30m:O\x1b[0m");
+					else print ("\x1b[43;30m:)\x1b[0m");
 					break;
 				case States.WIN:
-					print("B)");
+					print("\x1b[43;30mB)\x1b[0m");
 					break;
 			}
+		} else if (i === end) {
+			print(` ${(mines - flagged).toString().padStart(4, " ")}`);
+		} else if (i > end && i <= end + 4) {
+			continue;
 		} else {
 			print(" ");
 		}
