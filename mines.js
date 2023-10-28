@@ -23,6 +23,19 @@ let mined;
 let flagged;
 
 async function init() {
+	await askOptions();
+
+	process.stdin.on("keypress", (chunk, key) => {
+		if (key.ctrl && key.name === "c") {
+			print("", true);
+			process.exit();
+		} else {
+			onKey(key);
+		}
+	});
+}
+
+async function askOptions() {
 	print("\x1b[2J\x1b[H");
 
 	const read = readline.createInterface({
@@ -53,14 +66,6 @@ async function init() {
 
 	readline.emitKeypressEvents(process.stdin);
 	process.stdin.setRawMode(true);
-	process.stdin.on("keypress", (chunk, key) => {
-		if (key.ctrl && key.name === "c") {
-			print("", true);
-			process.exit();
-		} else {
-			onKey(key);
-		}
-	});
 
 	reset();
 }
@@ -119,6 +124,8 @@ async function onKey(key) {
 	if (state === States.DEAD || state === States.WIN) {
 		if (key.name === "z") {
 			reset();
+		} else if (key.name === "x") {
+			askOptions();
 		}
 		return;
 	}
